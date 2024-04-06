@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.apache.tomcat.util.codec.binary.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.product.javaassignement.model.Product;
@@ -30,7 +31,7 @@ public class serviceImpl implements service{
 		return productList;
 	}
 	@Override
-	public Map<String, Object> generateBill() {
+	public Map<String, Object> generateBill() throws NullPointerException {
 		Map<String, Object> billDetails = new HashMap<String, Object>();
 //		List<Double> prices = productList.stream().map(p -> p.getPrice()).collect(Collectors.toList());
 //		double total = 0;
@@ -38,21 +39,29 @@ public class serviceImpl implements service{
 //			total += price;
 //		}
 //		System.out.println("total - "+total);
-		double total = 0;
-		for(Product p : productList) {
-			int q = p.getQuantity();
-			double price = p.getPrice();
-			total = totalCost(q, price);
+		try {
+			List<Double> totalList = new ArrayList<Double>();
+			double total = 0;
+			for(Product p : productList) {
+				int q = p.getQuantity();
+				double price = p.getPrice();
+				total = totalCost(q, price);
+				totalList.add(total);
+				
+			}
+			double sum = totalList.stream().mapToDouble(Double::valueOf).sum();
+
+			double CGST = calculateTax(total);
+			double SGST = calculateTax(total);
+			double finalTotal = finalTotal(sum, CGST, SGST);
+			billDetails.put("products", productList);
+			billDetails.put("total", sum);
+			billDetails.put("CGST 9%", CGST);
+			billDetails.put("SGST 9%", SGST);
+			billDetails.put("final total", finalTotal);
+		} catch (Exception e) {
+			e.getMessage();
 		}
-		
-		double CGST = calculateTax(total);
-		double SGST = calculateTax(total);
-		double finalTotal = finalTotal(total, CGST, SGST);
-		billDetails.put("products", productList);
-		billDetails.put("total", total);
-		billDetails.put("CGST 9%", CGST);
-		billDetails.put("SGST 9%", SGST);
-		billDetails.put("final total", finalTotal);
 		return billDetails;
 	}
 	
@@ -66,7 +75,9 @@ public class serviceImpl implements service{
 		return tax;
 	}
 
-	double finalTotal(double total, double CGST, double SGST) {
-		return total + CGST + SGST;
+	double finalTotal(double sum, double CGST, double SGST) {
+		
+		return sum + CGST + SGST;
+		
 	}
 }
