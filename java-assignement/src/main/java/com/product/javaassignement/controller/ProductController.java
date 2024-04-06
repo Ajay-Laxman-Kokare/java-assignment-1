@@ -46,7 +46,7 @@ public class ProductController {
 		return (ResponseEntity<List<Product>>) ResponseEntity.notFound();
 		
 	}
-	@GetMapping("/generateBill")
+	@GetMapping("/viewBill")
 	public ResponseEntity<Map<String, Object>> generateBill(){
 		Map<String , Object> billDetails = service.generateBill();
 		if(!billDetails.isEmpty()) {
